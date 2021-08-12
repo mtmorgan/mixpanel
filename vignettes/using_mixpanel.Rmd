@@ -1,0 +1,114 @@
+---
+title: "Using mixpanel"
+author:
+- name: Martin Morgan
+  affiliation: Roswell Park Comprehensive Cancer Center
+  email: mtmorgan.bioc@gmail.com
+package: mixpanel
+output:
+  BiocStyle::html_document
+vignette: |
+  %\VignetteIndexEntry{Using mixpanel}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Installation
+
+Install the package from GitHub, e.g.,
+
+```{r, eval = FALSE}
+BiocManager::install("mtmorgan/mixpanel")
+```
+
+Load the package and [dplyr][]
+
+```{r, message = FALSE}
+library(mixpanel)
+library(dplyr)
+options(dplyr.summarise.inform = FALSE)
+```
+
+[dplyr]: https://cloud.r-project.org/package=dplyr
+
+# Configuration and localization
+
+```{r, message = FALSE}
+tbl <- mixpanel::retrieve()
+```
+
+# Example summaries
+
+Available titles for summary
+
+```{r}
+distinct(tbl, title)
+```
+
+Application (Galaxy, RStudio, Notebook) launches, per month.
+
+```{r}
+filter(tbl, title == "Application Launches") |>
+    read() |>
+    group_by(Month, Event) |>
+    summarize(n = sum(DateRangeCount)) |>
+    arrange(Event, Month)
+```
+
+Application unique users, per month.
+
+```{r}
+filter(tbl, title == "Application Users") |>
+    read() |>
+    group_by(Month, Event) |>
+    summarize(n = sum(DateRangeCount)) |>
+    arrange(Event, Month)
+```
+
+Workspace use, cummulative.
+
+```{r}
+filter(tbl, title == "Cloned Workspaces") |>
+    read() |>
+    group_by(fromWorkspaceName) |>
+    summarize(n = sum(DateRangeCount)) |>
+    filter(n > 1L) |>
+    arrange(desc(n)) |>
+    print(n = Inf)
+```
+
+Workflow import, launch, and re-run, per month.
+
+```{r}
+filter(tbl, title == "Workflow Actions") |>
+    read() |>
+    group_by(Month, Event) |>
+    summarize(n = sum(DateRangeCount)) |>
+    arrange(Event, Month)
+```
+
+Workflow use, cummulative.
+
+```{r}
+filter(tbl, title == "What workflows have been launched") |>
+    read() |>
+    group_by(methodPath) |>
+    summarize(n = sum(DateRangeCount)) |>
+    arrange(desc(n)) |>
+    print(n = Inf)
+```
+
+Workflow source (e.g., dockstore).
+
+```{r}
+filter(tbl, title == "Workflow Import Source") |>
+    read() |>
+    group_by(source, Month) |>
+    summarize(n = sum(DateRangeCount))
+```
+
+# Session info {.unnumbered}
+
+```{r sessionInfo, echo=FALSE}
+sessionInfo()
+```

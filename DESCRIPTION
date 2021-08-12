@@ -1,0 +1,22 @@
+Package: mixpanel
+Title: Retrieve and parse AnVIL 'MixPanel' csv files
+Version: 0.0.1
+Authors@R: 
+    person(given = "Martin",
+           family = "Morgan",
+           role = c("aut", "cre"),
+           email = "mtmorgan.bioc@gmail.com",
+           comment = c(ORCID = "0000-0002-5874-8148"))
+Description: Use requires access to the MixPanel data. This access is
+    not public, so the package is not useful to non-AnVIL team
+    members.MixPanel csv files provide a monthly, facetted summary of
+    AnVIL use. The functions in this package facilitate aggregation of
+    the files and programmatic segregation. The vignette illustrates
+    use.
+License: Artistic-2.0
+Imports: googledrive, dplyr, readr, tibble, futile.logger, tools
+Suggests: BiocStyle, knitr, rmarkdown
+VignetteBuilder: knitr
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
