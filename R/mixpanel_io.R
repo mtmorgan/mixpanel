@@ -24,7 +24,7 @@
 #' @importFrom googledrive as_id drive_ls drive_download
 #'
 #' @importFrom dplyr .data filter mutate select arrange anti_join
-#'     everything
+#'     bind_rows everything
 #'
 #' @importFrom tibble tibble
 #'
@@ -85,7 +85,7 @@ read <-
         tbl
     })
     nrows <- vapply(tbls, nrow, integer(1))
-    do.call("rbind", tbls) |>
+    bind_rows(tbls) |>
         mutate(Month = rep(tbl$month, nrows)) |>
         select(.data$Month, everything())
 }        

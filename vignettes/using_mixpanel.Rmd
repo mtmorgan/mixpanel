@@ -39,7 +39,7 @@ Google Drive folder. Files already cached are not downloaded a second
 time.
 
 ```{r, message = FALSE}
-tbl <- mixpanel::retrieve()
+tbl <- retrieve()
 ```
 
 # Use
@@ -54,22 +54,21 @@ workspace or workflow names. `unhash()` can be used to recover
 original values, but only in the same session as the `hash()` call
 that generate the keys.
 
-## Example summaries
-
-Available titles for summary
+The following file titles are available for summary.
 
 ```{r}
 distinct(tbl, title)
 ```
+
+## Summary uses
 
 Application (Galaxy, RStudio, Notebook) launches, per month.
 
 ```{r}
 filter(tbl, title == "Application Launches") |>
     read() |>
-    group_by(Month, Event) |>
-    summarize(n = sum(DateRangeCount)) |>
-    arrange(Event, Month)
+    group_by(Event, Month) |>
+    summarize(n = sum(DateRangeCount))
 ```
 
 Application unique users, per month.
@@ -77,9 +76,8 @@ Application unique users, per month.
 ```{r}
 filter(tbl, title == "Application Users") |>
     read() |>
-    group_by(Month, Event) |>
-    summarize(n = sum(DateRangeCount)) |>
-    arrange(Event, Month)
+    group_by(Event, Month) |>
+    summarize(n = sum(DateRangeCount))
 ```
 
 Workspace use, cummulative.
@@ -101,9 +99,8 @@ Workflow import, launch, and re-run, per month.
 ```{r}
 filter(tbl, title == "Workflow Actions") |>
     read() |>
-    group_by(Month, Event) |>
-    summarize(n = sum(DateRangeCount)) |>
-    arrange(Event, Month)
+    group_by(Event, Month) |>
+    summarize(n = sum(DateRangeCount))
 ```
 
 Workflow use, cummulative.
@@ -125,6 +122,27 @@ filter(tbl, title == "Workflow Import Source") |>
     group_by(source, Month) |>
     summarize(n = sum(DateRangeCount))
 ```
+
+## Retention
+
+The `retention_report` summarizes how many users from one particular
+day (or the monthly `$average`) are seen again in 1, 2, ... months.
+
+```{r}
+filter(tbl, title ==  "retention_report") |>
+    read() |>
+    filter(Date == "$average")
+```
+
+_Bioconductor_ PopUp workshops where held on the following dates:
+
+```{r}
+dates <- as.character(as.Date("2021-04-26") + (0:6) * 7)[-6]
+filter(tbl, title ==  "retention_report") |>
+    read() |>
+    filter(Date %in% dates)
+```
+
 
 # Session info {.unnumbered}
 

@@ -1,6 +1,6 @@
 Package: mixpanel
 Title: Retrieve and parse AnVIL 'MixPanel' csv files
-Version: 0.0.2
+Version: 0.0.3
 Authors@R: 
     person(given = "Martin",
            family = "Morgan",
