@@ -33,11 +33,28 @@ options(dplyr.summarise.inform = FALSE)
 
 # Configuration and localization
 
+Use `retrieve()` to configure Google Drive access. Once authorized,
+`retrieve()` finds and localizes all `.csv` files in the MixPanel
+Google Drive folder. Files already cached are not downloaded a second
+time.
+
 ```{r, message = FALSE}
 tbl <- mixpanel::retrieve()
 ```
 
-# Example summaries
+# Use
+
+Use `read()` to concatenate several CSV files into a single
+tibble. Usually the CSV files summarize the same facet but in
+different months.
+
+Use `hash()` to obscure (not cryptographically secure or recoverable
+in a separate R session) potentially sensitive information such as
+workspace or workflow names. `unhash()` can be used to recover
+original values, but only in the same session as the `hash()` call
+that generate the keys.
+
+## Example summaries
 
 Available titles for summary
 
@@ -70,11 +87,13 @@ Workspace use, cummulative.
 ```{r}
 filter(tbl, title == "Cloned Workspaces") |>
     read() |>
+	mutate(
+	    fromWorkspaceName = hash(fromWorkspaceName, except = "^Bioconductor")
+	) |>
     group_by(fromWorkspaceName) |>
     summarize(n = sum(DateRangeCount)) |>
     filter(n > 1L) |>
-    arrange(desc(n)) |>
-    print(n = Inf)
+    arrange(desc(n))
 ```
 
 Workflow import, launch, and re-run, per month.
@@ -92,10 +111,10 @@ Workflow use, cummulative.
 ```{r}
 filter(tbl, title == "What workflows have been launched") |>
     read() |>
+    mutate(methodPath = hash(methodPath)) |>
     group_by(methodPath) |>
     summarize(n = sum(DateRangeCount)) |>
-    arrange(desc(n)) |>
-    print(n = Inf)
+    arrange(desc(n))
 ```
 
 Workflow source (e.g., dockstore).

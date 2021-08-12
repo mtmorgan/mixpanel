@@ -1,0 +1,5 @@
+.DS_store
+.Rhistory
+src/*o
+vignettes/*R
+vignettes/*html

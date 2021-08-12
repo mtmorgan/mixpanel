@@ -23,7 +23,8 @@
 #'
 #' @importFrom googledrive as_id drive_ls drive_download
 #'
-#' @importFrom dplyr .data filter mutate select arrange anti_join everything
+#' @importFrom dplyr .data filter mutate select arrange anti_join
+#'     everything
 #'
 #' @importFrom tibble tibble
 #'
