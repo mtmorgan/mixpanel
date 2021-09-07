@@ -26,6 +26,7 @@ Load the package and [dplyr][]
 ```{r, message = FALSE}
 library(mixpanel)
 library(dplyr)
+library(ggplot2)
 options(dplyr.summarise.inform = FALSE)
 ```
 
@@ -65,19 +66,23 @@ distinct(tbl, title)
 Application (Galaxy, RStudio, Notebook) launches, per month.
 
 ```{r}
-filter(tbl, title == "Application Launches") |>
+app_launches <-
+    filter(tbl, title == "Application Launches") |>
     read() |>
     group_by(Event, Month) |>
     summarize(n = sum(DateRangeCount))
+app_launches
 ```
 
 Application unique users, per month.
 
 ```{r}
-filter(tbl, title == "Application Users") |>
+app_users <-
+    filter(tbl, title == "Application Users") |>
     read() |>
     group_by(Event, Month) |>
     summarize(n = sum(DateRangeCount))
+app_users
 ```
 
 Workspace use, cummulative.
@@ -97,10 +102,12 @@ filter(tbl, title == "Cloned Workspaces") |>
 Workflow import, launch, and re-run, per month.
 
 ```{r}
-filter(tbl, title == "Workflow Actions") |>
+workflow_events <-
+    filter(tbl, title == "Workflow Actions") |>
     read() |>
     group_by(Event, Month) |>
     summarize(n = sum(DateRangeCount))
+workflow_events
 ```
 
 Workflow use, cummulative.
@@ -123,12 +130,65 @@ filter(tbl, title == "Workflow Import Source") |>
     summarize(n = sum(DateRangeCount))
 ```
 
+## Application and workflow summary
+
+```{r}
+app_clean <- function(event) {
+    event <- sub(".*(Galaxy|RStudio).*", "\\1", event)
+    sub(".*(Notebook).*", "\\1", event)
+}
+
+app_launches_users <-
+    left_join(
+        app_launches |>
+            mutate(Event = app_clean(Event)) |>
+            rename(Launches = n),
+        app_users |>
+            mutate(Event = app_clean(Event)) |>
+            rename(Users = n),
+        by = c("Event", "Month")
+    ) |>
+    mutate(Event = factor(Event, levels = c("Galaxy", "RStudio", "Notebook")))
+
+all_launches_users <- bind_rows(
+    app_launches_users,
+    workflow_events |>
+    filter(grepl("Launch", Event)) |>
+    mutate(Event = sub(".*(Workflow).*", "\\1", Event)) |>
+    rename(Launches = n)
+)
+```
+
+```{r}
+ggplot(
+    app_launches_users,
+    aes(x = Month, y = Users, group = Event, fill = Event)
+) +
+    geom_bar(position = "stack", stat = "identity", width = .5) +
+    ggtitle("Application users (unique)")
+```
+
+```{r}
+app_workflow_launches_users <-
+    all_launches_users |>
+    mutate(Event = ifelse(Event == "Workflow", Event, "Application")) |>
+    group_by(Event, Month) |>
+    summarize(Launches = sum(Launches), Users = sum(Users))
+    
+ggplot(
+    app_workflow_launches_users,
+    aes(x = Month, y = Launches, group = Event, fill = Event)
+) +
+    geom_bar(position = "stack", stat = "identity", width = .5) +
+    ggtitle("Workflow and application launches")
+```
+
 ## Retention
 
 The `retention_report` summarizes how many users from one particular
 day (or the monthly `$average`) are seen again in 1, 2, ... months.
 
-```{r}
+```{r, eval = FALSE}
 filter(tbl, title ==  "retention_report") |>
     read() |>
     filter(Date == "$average")
@@ -136,7 +196,7 @@ filter(tbl, title ==  "retention_report") |>
 
 _Bioconductor_ PopUp workshops where held on the following dates:
 
-```{r}
+```{r, eval = FALSE}
 dates <- as.character(as.Date("2021-04-26") + (0:6) * 7)[-6]
 filter(tbl, title ==  "retention_report") |>
     read() |>

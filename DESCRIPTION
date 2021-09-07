@@ -1,6 +1,6 @@
 Package: mixpanel
 Title: Retrieve and parse AnVIL 'MixPanel' csv files
-Version: 0.0.3
+Version: 0.0.4
 Authors@R: 
     person(given = "Martin",
            family = "Morgan",
@@ -19,7 +19,8 @@ Suggests:
     testthat (>= 3.0.0),
     BiocStyle,
     knitr,
-    rmarkdown
+    rmarkdown,
+    ggplot2
 VignetteBuilder: knitr
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
