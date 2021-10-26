@@ -26,6 +26,7 @@ Load the package and [dplyr][]
 ```{r, message = FALSE}
 library(mixpanel)
 library(dplyr)
+library(RColorBrewer)
 library(ggplot2)
 options(dplyr.summarise.inform = FALSE)
 ```
@@ -188,19 +189,53 @@ ggplot(
 The `retention_report` summarizes how many users from one particular
 day (or the monthly `$average`) are seen again in 1, 2, ... months.
 
-```{r, eval = FALSE}
+```{r}
 filter(tbl, title ==  "retention_report") |>
-    read() |>
-    filter(Date == "$average")
+    read(is_retention_report = TRUE)
+
+## read only the '$average' row
+monthly_retention <-
+    filter(tbl, title ==  "retention_report", month != "Aug") |>
+    read(n_max = 1) |>
+    select(-Date) |>
+    tidyr::pivot_longer(-Month, names_to = "Retained", values_to = "count") |>
+    mutate(
+        Retained = factor(Retained, levels = unique(Retained)),
+        Month = factor(Month, levels = rev(levels(Month)))
+    )
+
+ggplot(
+    monthly_retention,
+    aes(Retained, Month, fill = count)
+) +
+    geom_raster() +
+    scale_fill_distiller(palette = "Blues", direction = 1)
 ```
 
 _Bioconductor_ PopUp workshops where held on the following dates:
 
-```{r, eval = FALSE}
-dates <- as.character(as.Date("2021-04-26") + (0:6) * 7)[-6]
-filter(tbl, title ==  "retention_report") |>
-    read() |>
-    filter(Date %in% dates)
+```{r}
+dates <- (as.Date("2021-04-26") + (0:6) * 7)[-6]
+workshop_retention <-
+    filter(tbl, title ==  "retention_report") |>
+    read(is_retention_report = TRUE) |>
+    filter(Date %in% dates) |>
+    select(-Month, -"$date") |>
+    tidyr::pivot_longer(-Date, names_to = "Retained", values_to = "count") |>
+    mutate(
+        Retained = factor(Retained, levels = unique(Retained)),
+        Date = factor(
+            as.character(Date),
+            levels = rev(unique(as.character(Date)))
+        )
+    )
+
+ggplot(
+    workshop_retention,
+    aes(Retained, Date, fill = count)
+) +
+    geom_raster() +
+    scale_fill_distiller(palette = "Blues", direction = 1)
 ```
 
 

@@ -7,7 +7,7 @@
 \usage{
 retrieve(destination = R_user_dir("mixpanel", "cache"))
 
-read(tbl)
+read(tbl, ..., is_retention_report = FALSE)
 }
 \arguments{
 \item{destination}{character(1) location of the local cache. The
@@ -16,6 +16,13 @@ packages.}
 
 \item{tbl}{A tibble returned by \code{retrieve()}, typically filtered to
 select a title of interest.}
+
+\item{\dots}{Additional arguments passed to \code{read_csv()}.}
+
+\item{is_retention_report}{logical(1). When \code{FALSE} (default)
+process files returned by \code{read_csv()} without further
+modification. When \code{TRUE}, remove the \verb{$average} 'Date' present
+in some files.}
 }
 \value{
 \code{retrieve()} returns a tibble with columns year, month,

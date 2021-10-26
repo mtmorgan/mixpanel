@@ -68,22 +68,35 @@ retrieve <-
 #' @param tbl A tibble returned by `retrieve()`, typically filtered to
 #'     select a title of interest.
 #'
+#' @param \dots Additional arguments passed to `read_csv()`.
+#'
+#' @param is_retention_report logical(1). When `FALSE` (default)
+#'     process files returned by `read_csv()` without further
+#'     modification. When `TRUE`, remove the `$average` 'Date' present
+#'     in some files.
+#'
 #' @return `read()` returns a single tibble.
 #'
 #' @importFrom readr read_csv
 #'
 #' @export
 read <-
-    function(tbl)
+    function(tbl, ..., is_retention_report = FALSE)
 {
     flog.info("reading %d csv files", nrow(tbl))
-    tbls <- lapply(tbl$path, function(path) {
-        tbl <- read_csv(path, show_col_types = FALSE)
+    tbls <- lapply(tbl$path, function(path, ...) {
+        tbl <- read_csv(path, show_col_types = FALSE, ...)
+        ## drop $average row by reading twice
+        if (is_retention_report && inherits(tbl$Date, "character")) {
+            tbl <- read_csv(
+                path, show_col_types = FALSE, skip = 2, col_names = names(tbl)
+            )
+        }
         ## re-name date ranges as 'DateRangeCount'
         idx <- grepl(" - ", names(tbl), fixed = TRUE)
         names(tbl)[idx] <- "DateRangeCount"
         tbl
-    })
+    }, ...)
     nrows <- vapply(tbls, nrow, integer(1))
     bind_rows(tbls) |>
         mutate(Month = rep(tbl$month, nrows)) |>
